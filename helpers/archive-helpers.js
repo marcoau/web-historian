@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var utils = require("../helpers/http-helpers");
+var getHandler = require("../web/get-handler");
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -25,17 +27,50 @@ exports.initialize = function(pathsObj){
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(){
+//step 1
+exports.requestAddUrl = function(res, url){
+  exports.accessList(res, url);
 };
 
-exports.isUrlInList = function(){
+exports.accessList = function(res, url){
+  console.log(url);
+  fs.readFile(exports.paths.list, function(err, data){
+    var allSites = data.toString();
+    if(!exports.isUrlInList(url, allSites)){
+      exports.addUrlToList(res, url);
+      getHandler.serveAssets(res, utils.fullURL('loading.html'), 302);
+    }else{
+      exports.accessArchive(res, url);
+    }
+  });
 };
 
-exports.addUrlToList = function(){
+exports.isUrlInList = function(url, list){
+  return list.search(url) !== -1;
 };
 
-exports.isURLArchived = function(){
+exports.addUrlToList = function(res, url){
+  fs.appendFile(exports.paths.list, url + '\n', function(err){
+    if(err){
+      console.log(err);
+    }else{
+      console.log(url + ' is added to sites.txt');
+    }
+  });
 };
 
-exports.downloadUrls = function(){
+exports.accessArchive = function(res, url){
+  var targetArchive = exports.paths.archivedSites + '/' + url;
+  console.log(targetArchive);
+  fs.exists(targetArchive, function(exists){
+    console.log(exists);
+    if(exists){
+      getHandler.serveAssets(res, targetArchive, 302);
+    }else{
+      utils.send500(res);
+    }
+  });
+};
+
+exports.downloadUrl = function(){
 };

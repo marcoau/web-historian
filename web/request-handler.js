@@ -1,26 +1,35 @@
 var path = require('path');
-var archive = require('../helpers/archive-helpers');
-var helpers = require("./http-helpers");
-
-
 var fs = require('fs');
+var qs = require('querystring');
+var archive = require('../helpers/archive-helpers');
+var utils = require("../helpers/http-helpers");
+var getHandler = require("./get-handler");
+// var postHandler = require("./post-handler");
+// // var fs = require('fs');
 
 // closure functions 
 var getAction = function(req, res){
-  console.log(req.url);
-  var homeDir = __dirname + '/public/';
-  var targetFile = path.basename(req.url) || 'index.html';
-  var asset = homeDir + targetFile;
-  console.log('Now looking for asset: ' + asset);
-  helpers.serveAssets(res, asset);
+  getHandler.serveAssets(res, utils.fullURL(req.url));
 };
 
 var postAction = function(req, res){
-  helpers.sendResponse(res, 200, {}, 'Successful POST');
+  var data = '';
+  req.on('data', function(chunk){
+    data += chunk;
+  });
+  req.on('end', function(){
+    var newSite = qs.parse(data).url;
+    console.log('Data received is: ' + newSite);
+    archive.requestAddUrl(res, newSite);
+  });
+
+  // getHandler.serveAssets(res, utils.fullURL('loading.html'), 302);
+
+  //special case for loading.html (302)
 };
 
 var optionsAction = function(req, res){
-  helpers.sendResponse(res, 200, {}, 'Successfully connected!');
+  utils.sendResponse(res, 200, {}, 'Successfully connected!');
 };
 
 var actions = {
@@ -30,13 +39,12 @@ var actions = {
 };
 
 exports.handleRequest = function (req, res) {
-
+  console.log('Request type: ' + req.method);
   var action = req.method;
   if(action){
     actions[action](req, res);
   }else{
-    //404;
-    helpers.send404(res);
+    utils.send404(res);
 
   }
   //res.end(archive.paths.list);
