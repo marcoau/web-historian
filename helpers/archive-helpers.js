@@ -33,7 +33,6 @@ exports.requestAddUrl = function(res, url){
 };
 
 exports.accessList = function(res, url){
-  console.log(url);
   fs.readFile(exports.paths.list, function(err, data){
     var allSites = data.toString();
     if(!exports.isUrlInList(url, allSites)){
@@ -61,16 +60,19 @@ exports.addUrlToList = function(res, url){
 
 exports.accessArchive = function(res, url){
   var targetArchive = exports.paths.archivedSites + '/' + url;
-  console.log(targetArchive);
   fs.exists(targetArchive, function(exists){
-    console.log(exists);
     if(exists){
       getHandler.serveAssets(res, targetArchive, 302);
     }else{
-      utils.send500(res);
+      getHandler.serveAssets(res, utils.fullURL('loading.html'), 302);
     }
   });
 };
 
-exports.downloadUrl = function(){
+exports.saveToArchive = function(url, data){
+  fs.writeFile(exports.paths.archivedSites + '/' + url, data, function(err){
+    if(err){
+      console.log(err);
+    }
+  });
 };

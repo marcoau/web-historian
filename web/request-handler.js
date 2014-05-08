@@ -4,12 +4,25 @@ var qs = require('querystring');
 var archive = require('../helpers/archive-helpers');
 var utils = require("../helpers/http-helpers");
 var getHandler = require("./get-handler");
-// var postHandler = require("./post-handler");
-// // var fs = require('fs');
+
+var fetcher = require('../workers/htmlfetcher');
 
 // closure functions 
 var getAction = function(req, res){
-  getHandler.serveAssets(res, utils.fullURL(req.url));
+
+  console.log(req.url);
+  if(req.url === '/'){
+    console.log('index');
+    //index
+    getHandler.serveAssets(res, utils.fullURL('/index.html'));
+  }else if(!(path.extname(req.url) in utils.extensions)){
+    //archived stuff
+    getHandler.serveAssets(res, utils.archiveURL(req.url));
+  }else{
+    //not archived stuff
+    console.log(utils.fullURL(req.url));
+    getHandler.serveAssets(res, utils.fullURL(req.url));
+  }
 };
 
 var postAction = function(req, res){
@@ -22,10 +35,6 @@ var postAction = function(req, res){
     console.log('Data received is: ' + newSite);
     archive.requestAddUrl(res, newSite);
   });
-
-  // getHandler.serveAssets(res, utils.fullURL('loading.html'), 302);
-
-  //special case for loading.html (302)
 };
 
 var optionsAction = function(req, res){
@@ -39,13 +48,12 @@ var actions = {
 };
 
 exports.handleRequest = function (req, res) {
+  // fetcher.startCron();
   console.log('Request type: ' + req.method);
   var action = req.method;
   if(action){
     actions[action](req, res);
   }else{
     utils.send404(res);
-
   }
-  //res.end(archive.paths.list);
 };

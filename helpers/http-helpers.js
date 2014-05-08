@@ -24,6 +24,12 @@ exports.fullURL = function(url){
   return homeDir + targetFile;
 };
 
+exports.archiveURL = function(url){
+  var homeDir = path.normalize(__dirname + '/../archives/sites/');
+  var targetFile = path.basename(url) || 'index.html';
+  return homeDir + targetFile;
+};
+
 exports.sendResponse = function(res, statusCode, type, responseData){
   var extendedHeaders = _.extend(headers, {'Content-Type': type});
   res.writeHead(statusCode, extendedHeaders);

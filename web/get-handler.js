@@ -30,7 +30,6 @@ exports.serveAssets = function(res, asset, statusCode) {
       }else{
         var ext = path.extname(asset);
         var type = utils.extensions[ext];
-        console.log(data);
         utils.sendResponse(res, code, type, data);
       }
     });
